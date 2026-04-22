@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Historique — Changement de commande</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header>
+  <h1>Changement de Commande</h1>
+  <nav>
+    <a href="index.html">Nouvelle fiche</a>
+    <a href="records.html" class="active">Historique</a>
+  </nav>
+</header>
+
+<main>
+  <div class="records-toolbar">
+    <h2>Historique des fiches</h2>
+    <a href="index.html" class="btn-primary">+ Nouvelle fiche</a>
+  </div>
+
+  <div class="search-bar">
+    <input type="text" id="searchInput" placeholder="Rechercher par BL, production, date…" oninput="filterCards()">
+  </div>
+
+  <div id="recordsList">
+    <div class="empty-state">
+      <div class="icon">📋</div>
+      <p>Chargement…</p>
+    </div>
+  </div>
+</main>
+
+<!-- ── Panneau de détail ── -->
+<div class="detail-overlay hidden" id="detailOverlay" onclick="closeDetail(event)">
+  <div class="detail-panel" id="detailPanel">
+    <div class="detail-header">
+      <h3 id="detailTitle">Détail de l'intervention</h3>
+      <button class="btn-close" onclick="closeDetailBtn()">×</button>
+    </div>
+    <div class="detail-body" id="detailBody"></div>
+    <div class="detail-footer">
+      <button class="btn-danger" id="deleteBtn" onclick="deleteRecord()">Supprimer</button>
+      <button class="btn-secondary" onclick="window.print()">Imprimer</button>
+    </div>
+  </div>
+</div>
+
+<script src="records.js"></script>
+</body>
+</html>

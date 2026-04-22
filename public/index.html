@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nouvelle fiche — Changement de commande</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header>
+  <h1>Changement de Commande</h1>
+  <nav>
+    <a href="index.html" class="active">Nouvelle fiche</a>
+    <a href="records.html">Historique</a>
+  </nav>
+</header>
+
+<main>
+  <form id="mainForm" novalidate>
+
+    <!-- ── SECTION 1 : Informations générales ── -->
+    <div class="form-section">
+      <div class="section-title">
+        <h2>Informations générales</h2>
+      </div>
+
+      <div class="bl-main" id="blMain">BL-????</div>
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Date d'intervention <span class="req">*</span></label>
+          <input type="date" id="date_intervention" required>
+        </div>
+        <div class="form-group">
+          <label>Ancienne production <span class="req">*</span></label>
+          <input type="text" id="ancienne_production" placeholder="Ex : Produit A" required>
+        </div>
+        <div class="form-group">
+          <label>Nouvelle production <span class="req">*</span></label>
+          <input type="text" id="nouvelle_production" placeholder="Ex : Produit B" required>
+        </div>
+        <div class="form-group">
+          <label>Heure prévue</label>
+          <input type="time" id="heure_prevue">
+        </div>
+        <div class="form-group">
+          <label>Heure réelle</label>
+          <input type="time" id="heure_reelle">
+        </div>
+        <div class="form-group">
+          <label>Heure de début</label>
+          <input type="time" id="heure_debut">
+        </div>
+        <div class="form-group">
+          <label>Nombre d'opérateurs <span class="req">*</span></label>
+          <input type="number" id="nombre_operateurs" min="1" max="50" placeholder="0" required>
+        </div>
+      </div>
+
+      <div class="form-group full" style="margin-top:1rem;">
+        <label>Noms des opérateurs</label>
+        <div class="operator-list" id="operatorList">
+          <div class="operator-row">
+            <input type="text" placeholder="Opérateur 1" class="op-input">
+            <button type="button" class="btn-remove" onclick="removeOp(this)">×</button>
+          </div>
+        </div>
+        <button type="button" class="btn-add-op" onclick="addOp()">+ Ajouter un opérateur</button>
+      </div>
+
+      <div class="form-group full" style="margin-top:1rem;">
+        <label>Observations</label>
+        <textarea id="observations" placeholder="Remarques, incidents, conditions particulières…"></textarea>
+      </div>
+    </div>
+
+    <!-- ── SECTION 2 : Nettoyage Hacheuse ── -->
+    <div class="form-section">
+      <div class="section-title">
+        <h2>Nettoyage de la Hacheuse</h2>
+        <label class="toggle">
+          <input type="checkbox" id="h_active" onchange="toggleSection('h')">
+          <span class="toggle-track"></span>
+          <span class="toggle-label">Effectué</span>
+        </label>
+      </div>
+
+      <div class="section-body hidden" id="h_body">
+        <div class="bl-sub" id="blHacheuse">BL-????</div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Heure de début</label>
+            <input type="time" id="h_debut">
+          </div>
+          <div class="form-group">
+            <label>Heure de fin</label>
+            <input type="time" id="h_fin">
+          </div>
+          <div class="form-group">
+            <label>Nombre d'opérateurs</label>
+            <input type="number" id="h_ops" min="1" max="50" placeholder="0">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SECTION 3 : Nettoyage Rouleaux ── -->
+    <div class="form-section">
+      <div class="section-title">
+        <h2>Nettoyage des Rouleaux</h2>
+        <label class="toggle">
+          <input type="checkbox" id="r_active" onchange="toggleSection('r')">
+          <span class="toggle-track"></span>
+          <span class="toggle-label">Effectué</span>
+        </label>
+      </div>
+
+      <div class="section-body hidden" id="r_body">
+        <div class="bl-sub" id="blRouleaux">BL-????</div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Heure de début</label>
+            <input type="time" id="r_debut">
+          </div>
+          <div class="form-group">
+            <label>Heure de fin</label>
+            <input type="time" id="r_fin">
+          </div>
+          <div class="form-group">
+            <label>Nombre d'opérateurs</label>
+            <input type="number" id="r_ops" min="1" max="50" placeholder="0">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SECTION 4 : Nettoyage Complémentaire ── -->
+    <div class="form-section">
+      <div class="section-title">
+        <h2>Nettoyage Complémentaire</h2>
+        <label class="toggle">
+          <input type="checkbox" id="c_active" onchange="toggleSection('c')">
+          <span class="toggle-track"></span>
+          <span class="toggle-label">Effectué</span>
+        </label>
+      </div>
+
+      <div class="section-body hidden" id="c_body">
+        <div class="bl-sub" id="blCompl">BL-????</div>
+        <div class="form-group full" style="margin-bottom:1rem;">
+          <label>Type de nettoyage <span class="req">*</span></label>
+          <input type="text" id="c_type" placeholder="Ex : Nettoyage convoyeur, bac de collecte…">
+        </div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Heure de début</label>
+            <input type="time" id="c_debut">
+          </div>
+          <div class="form-group">
+            <label>Heure de fin</label>
+            <input type="time" id="c_fin">
+          </div>
+          <div class="form-group">
+            <label>Nombre d'opérateurs</label>
+            <input type="number" id="c_ops" min="1" max="50" placeholder="0">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button type="button" class="btn-secondary" onclick="resetForm()">Réinitialiser</button>
+      <button type="submit" class="btn-primary" id="submitBtn">Enregistrer la fiche</button>
+    </div>
+
+  </form>
+</main>
+
+<!-- ── Modal succès ── -->
+<div class="modal-overlay hidden" id="successModal">
+  <div class="modal-box">
+    <div class="modal-icon">✓</div>
+    <h3>Fiche enregistrée avec succès !</h3>
+    <p>Les numéros de BL suivants ont été attribués :</p>
+    <div class="modal-bls" id="modalBLs"></div>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeModal()">Nouvelle fiche</button>
+      <a href="records.html" class="btn-primary">Voir l'historique</a>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
