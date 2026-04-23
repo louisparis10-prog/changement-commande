@@ -118,11 +118,11 @@ app.post('/api/interventions', (req, res) => {
           (bl_number, date_intervention, ancienne_production, nouvelle_production,
            heure_prevue, heure_reelle, heure_debut, nombre_operateurs, noms_operateurs, observations)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `).run(
+      `).run([
         bl_main, date_intervention, ancienne_production, nouvelle_production,
         heure_prevue, heure_reelle, heure_debut, nombre_operateurs,
         JSON.stringify(noms_operateurs || []), observations
-      );
+      ]);
 
       const assigned = { bl_main };
 
@@ -132,8 +132,8 @@ app.post('/api/interventions', (req, res) => {
         db.prepare(`
           INSERT INTO nettoyage_hacheuse (intervention_id, bl_number, heure_debut, heure_fin, nombre_operateurs)
           VALUES (?, ?, ?, ?, ?)
-        `).run(intervention_id, bl,
-          nettoyage_hacheuse.heure_debut, nettoyage_hacheuse.heure_fin, nettoyage_hacheuse.nombre_operateurs);
+        `).run([intervention_id, bl,
+          nettoyage_hacheuse.heure_debut, nettoyage_hacheuse.heure_fin, nettoyage_hacheuse.nombre_operateurs]);
       }
 
       if (nettoyage_rouleaux?.active) {
@@ -142,8 +142,8 @@ app.post('/api/interventions', (req, res) => {
         db.prepare(`
           INSERT INTO nettoyage_rouleaux (intervention_id, bl_number, heure_debut, heure_fin, nombre_operateurs)
           VALUES (?, ?, ?, ?, ?)
-        `).run(intervention_id, bl,
-          nettoyage_rouleaux.heure_debut, nettoyage_rouleaux.heure_fin, nettoyage_rouleaux.nombre_operateurs);
+        `).run([intervention_id, bl,
+          nettoyage_rouleaux.heure_debut, nettoyage_rouleaux.heure_fin, nettoyage_rouleaux.nombre_operateurs]);
       }
 
       if (nettoyage_complementaire?.active) {
@@ -153,10 +153,10 @@ app.post('/api/interventions', (req, res) => {
           INSERT INTO nettoyage_complementaire
             (intervention_id, bl_number, type_nettoyage, heure_debut, heure_fin, nombre_operateurs)
           VALUES (?, ?, ?, ?, ?, ?)
-        `).run(intervention_id, bl,
+        `).run([intervention_id, bl,
           nettoyage_complementaire.type_nettoyage,
           nettoyage_complementaire.heure_debut, nettoyage_complementaire.heure_fin,
-          nettoyage_complementaire.nombre_operateurs);
+          nettoyage_complementaire.nombre_operateurs]);
       }
 
       return { intervention_id, ...assigned };
@@ -199,7 +199,7 @@ app.get('/api/interventions/:id', (req, res) => {
     LEFT JOIN nettoyage_rouleaux       r ON r.intervention_id = i.id
     LEFT JOIN nettoyage_complementaire c ON c.intervention_id = i.id
     WHERE i.id = ?
-  `).get(req.params.id);
+  `).get([req.params.id]);
   if (!row) return res.status(404).json({ error: 'Non trouvé' });
   res.json(row);
 });
@@ -208,10 +208,10 @@ app.get('/api/interventions/:id', (req, res) => {
 app.delete('/api/interventions/:id', (req, res) => {
   const id = req.params.id;
   transaction(() => {
-    db.prepare('DELETE FROM nettoyage_hacheuse       WHERE intervention_id = ?').run(id);
-    db.prepare('DELETE FROM nettoyage_rouleaux       WHERE intervention_id = ?').run(id);
-    db.prepare('DELETE FROM nettoyage_complementaire WHERE intervention_id = ?').run(id);
-    db.prepare('DELETE FROM interventions            WHERE id = ?').run(id);
+    db.prepare('DELETE FROM nettoyage_hacheuse       WHERE intervention_id = ?').run([id]);
+    db.prepare('DELETE FROM nettoyage_rouleaux       WHERE intervention_id = ?').run([id]);
+    db.prepare('DELETE FROM nettoyage_complementaire WHERE intervention_id = ?').run([id]);
+    db.prepare('DELETE FROM interventions            WHERE id = ?').run([id]);
   });
   res.json({ success: true });
 });
