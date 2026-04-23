@@ -1,14 +1,14 @@
 const express = require('express');
-const Database = require('better-sqlite3');
+const { DatabaseSync } = require('node:sqlite');
 const path = require('path');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 const DB_PATH = process.env.DB_PATH || path.join(__dirname, 'nettoyage.db');
-const db = new Database(DB_PATH);
+const db = new DatabaseSync(DB_PATH);
 
-db.pragma('journal_mode = WAL');
-db.pragma('foreign_keys = ON');
+db.exec("PRAGMA journal_mode = WAL");
+db.exec("PRAGMA foreign_keys = ON");
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS bl_counter (
@@ -70,10 +70,22 @@ app.use(express.static(path.join(__dirname, 'public')));
 const stmtCounterGet    = db.prepare('SELECT counter FROM bl_counter WHERE id = 1');
 const stmtCounterUpdate = db.prepare('UPDATE bl_counter SET counter = counter + 1 WHERE id = 1');
 
+function transaction(fn) {
+  db.exec('BEGIN');
+  try {
+    const result = fn();
+    db.exec('COMMIT');
+    return result;
+  } catch (err) {
+    db.exec('ROLLBACK');
+    throw err;
+  }
+}
+
 function nextBL() {
   stmtCounterUpdate.run();
-  const { counter } = stmtCounterGet.get();
-  return `BL-${String(counter).padStart(4, '0')}`;
+  const row = stmtCounterGet.get();
+  return `BL-${String(row.counter).padStart(4, '0')}`;
 }
 
 function formatBL(n) {
@@ -83,10 +95,10 @@ function formatBL(n) {
 // Preview upcoming BL numbers without consuming them
 app.get('/api/preview-bl', (req, res) => {
   const count = Math.min(parseInt(req.query.count) || 1, 10);
-  const { counter } = stmtCounterGet.get();
+  const row = stmtCounterGet.get();
   const bls = [];
-  for (let i = 1; i <= count; i++) bls.push(formatBL(counter + i));
-  res.json({ bls, next: counter + 1 });
+  for (let i = 1; i <= count; i++) bls.push(formatBL(row.counter + i));
+  res.json({ bls, next: row.counter + 1 });
 });
 
 // Submit a new intervention
@@ -98,59 +110,59 @@ app.post('/api/interventions', (req, res) => {
     nettoyage_hacheuse, nettoyage_rouleaux, nettoyage_complementaire
   } = req.body;
 
-  const insertAll = db.transaction(() => {
-    const bl_main = nextBL();
-    const { lastInsertRowid: intervention_id } = db.prepare(`
-      INSERT INTO interventions
-        (bl_number, date_intervention, ancienne_production, nouvelle_production,
-         heure_prevue, heure_reelle, heure_debut, nombre_operateurs, noms_operateurs, observations)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(
-      bl_main, date_intervention, ancienne_production, nouvelle_production,
-      heure_prevue, heure_reelle, heure_debut, nombre_operateurs,
-      JSON.stringify(noms_operateurs || []), observations
-    );
-
-    const assigned = { bl_main };
-
-    if (nettoyage_hacheuse?.active) {
-      const bl = nextBL();
-      assigned.bl_hacheuse = bl;
-      db.prepare(`
-        INSERT INTO nettoyage_hacheuse (intervention_id, bl_number, heure_debut, heure_fin, nombre_operateurs)
-        VALUES (?, ?, ?, ?, ?)
-      `).run(intervention_id, bl,
-        nettoyage_hacheuse.heure_debut, nettoyage_hacheuse.heure_fin, nettoyage_hacheuse.nombre_operateurs);
-    }
-
-    if (nettoyage_rouleaux?.active) {
-      const bl = nextBL();
-      assigned.bl_rouleaux = bl;
-      db.prepare(`
-        INSERT INTO nettoyage_rouleaux (intervention_id, bl_number, heure_debut, heure_fin, nombre_operateurs)
-        VALUES (?, ?, ?, ?, ?)
-      `).run(intervention_id, bl,
-        nettoyage_rouleaux.heure_debut, nettoyage_rouleaux.heure_fin, nettoyage_rouleaux.nombre_operateurs);
-    }
-
-    if (nettoyage_complementaire?.active) {
-      const bl = nextBL();
-      assigned.bl_complementaire = bl;
-      db.prepare(`
-        INSERT INTO nettoyage_complementaire
-          (intervention_id, bl_number, type_nettoyage, heure_debut, heure_fin, nombre_operateurs)
-        VALUES (?, ?, ?, ?, ?, ?)
-      `).run(intervention_id, bl,
-        nettoyage_complementaire.type_nettoyage,
-        nettoyage_complementaire.heure_debut, nettoyage_complementaire.heure_fin,
-        nettoyage_complementaire.nombre_operateurs);
-    }
-
-    return { intervention_id, ...assigned };
-  });
-
   try {
-    res.json({ success: true, ...insertAll() });
+    const result = transaction(() => {
+      const bl_main = nextBL();
+      const { lastInsertRowid: intervention_id } = db.prepare(`
+        INSERT INTO interventions
+          (bl_number, date_intervention, ancienne_production, nouvelle_production,
+           heure_prevue, heure_reelle, heure_debut, nombre_operateurs, noms_operateurs, observations)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `).run(
+        bl_main, date_intervention, ancienne_production, nouvelle_production,
+        heure_prevue, heure_reelle, heure_debut, nombre_operateurs,
+        JSON.stringify(noms_operateurs || []), observations
+      );
+
+      const assigned = { bl_main };
+
+      if (nettoyage_hacheuse?.active) {
+        const bl = nextBL();
+        assigned.bl_hacheuse = bl;
+        db.prepare(`
+          INSERT INTO nettoyage_hacheuse (intervention_id, bl_number, heure_debut, heure_fin, nombre_operateurs)
+          VALUES (?, ?, ?, ?, ?)
+        `).run(intervention_id, bl,
+          nettoyage_hacheuse.heure_debut, nettoyage_hacheuse.heure_fin, nettoyage_hacheuse.nombre_operateurs);
+      }
+
+      if (nettoyage_rouleaux?.active) {
+        const bl = nextBL();
+        assigned.bl_rouleaux = bl;
+        db.prepare(`
+          INSERT INTO nettoyage_rouleaux (intervention_id, bl_number, heure_debut, heure_fin, nombre_operateurs)
+          VALUES (?, ?, ?, ?, ?)
+        `).run(intervention_id, bl,
+          nettoyage_rouleaux.heure_debut, nettoyage_rouleaux.heure_fin, nettoyage_rouleaux.nombre_operateurs);
+      }
+
+      if (nettoyage_complementaire?.active) {
+        const bl = nextBL();
+        assigned.bl_complementaire = bl;
+        db.prepare(`
+          INSERT INTO nettoyage_complementaire
+            (intervention_id, bl_number, type_nettoyage, heure_debut, heure_fin, nombre_operateurs)
+          VALUES (?, ?, ?, ?, ?, ?)
+        `).run(intervention_id, bl,
+          nettoyage_complementaire.type_nettoyage,
+          nettoyage_complementaire.heure_debut, nettoyage_complementaire.heure_fin,
+          nettoyage_complementaire.nombre_operateurs);
+      }
+
+      return { intervention_id, ...assigned };
+    });
+
+    res.json({ success: true, ...result });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: err.message });
@@ -195,12 +207,12 @@ app.get('/api/interventions/:id', (req, res) => {
 // Delete one intervention (and its children via cascade-like logic)
 app.delete('/api/interventions/:id', (req, res) => {
   const id = req.params.id;
-  db.transaction(() => {
+  transaction(() => {
     db.prepare('DELETE FROM nettoyage_hacheuse       WHERE intervention_id = ?').run(id);
     db.prepare('DELETE FROM nettoyage_rouleaux       WHERE intervention_id = ?').run(id);
     db.prepare('DELETE FROM nettoyage_complementaire WHERE intervention_id = ?').run(id);
     db.prepare('DELETE FROM interventions            WHERE id = ?').run(id);
-  })();
+  });
   res.json({ success: true });
 });
 

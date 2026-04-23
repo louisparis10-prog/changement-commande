@@ -17,6 +17,13 @@ function toggleSection(prefix) {
   const cb   = document.getElementById(`${prefix}_active`);
   const body = document.getElementById(`${prefix}_body`);
   body.classList.toggle('hidden', !cb.checked);
+  if (!cb.checked) {
+    body.querySelectorAll('input').forEach(el => {
+      el.classList.remove('field-error');
+      const err = document.getElementById(el.id + '_err');
+      if (err) { err.hidden = true; err.textContent = ''; }
+    });
+  }
 }
 
 // ── Operators ─────────────────────────────────────────────────────────────────
@@ -64,10 +71,101 @@ function closeModal() {
   resetForm();
 }
 
+// ── Validation ────────────────────────────────────────────────────────────────
+
+function setError(id, msg) {
+  const input = document.getElementById(id);
+  const err   = document.getElementById(id + '_err');
+  input.classList.add('field-error');
+  if (err) { err.textContent = msg; err.hidden = false; }
+}
+
+function clearError(id) {
+  const input = document.getElementById(id);
+  const err   = document.getElementById(id + '_err');
+  input.classList.remove('field-error');
+  if (err) { err.hidden = true; err.textContent = ''; }
+}
+
+function validateForm() {
+  const required = [
+    { id: 'date_intervention',   label: 'Date d\'intervention' },
+    { id: 'ancienne_production', label: 'Ancienne production' },
+    { id: 'nouvelle_production', label: 'Nouvelle production' },
+    { id: 'heure_prevue',        label: 'Heure prévue' },
+    { id: 'heure_reelle',        label: 'Heure réelle' },
+    { id: 'heure_debut',         label: 'Heure de début' },
+    { id: 'nombre_operateurs',   label: 'Nombre d\'opérateurs' },
+  ];
+
+  const sectionFields = {
+    h: ['h_debut', 'h_fin', 'h_ops'],
+    r: ['r_debut', 'r_fin', 'r_ops'],
+    c: ['c_type', 'c_debut', 'c_fin', 'c_ops'],
+  };
+
+  let firstError = null;
+  let valid = true;
+
+  // Clear all errors first
+  [...required.map(f => f.id), ...Object.values(sectionFields).flat()].forEach(clearError);
+  const opsErrEl = document.getElementById('operateurs_err');
+  opsErrEl.hidden = true; opsErrEl.textContent = '';
+  document.querySelectorAll('.op-input').forEach(el => el.classList.remove('field-error'));
+
+  // Main fields
+  for (const { id, label } of required) {
+    const val = document.getElementById(id).value.trim();
+    if (!val) {
+      setError(id, `Ce champ est obligatoire`);
+      if (!firstError) firstError = id;
+      valid = false;
+    }
+  }
+
+  // Nettoyage fields — only if section is checked
+  for (const [prefix, fields] of Object.entries(sectionFields)) {
+    if (!document.getElementById(`${prefix}_active`).checked) continue;
+    for (const id of fields) {
+      const val = document.getElementById(id).value.trim();
+      if (!val) {
+        setError(id, `Ce champ est obligatoire`);
+        if (!firstError) firstError = id;
+        valid = false;
+      }
+    }
+  }
+
+  // Operator names vs count
+  const nbOps = parseInt(document.getElementById('nombre_operateurs').value) || 0;
+  const filledNames = getOperatorNames().length;
+  if (nbOps > 0 && filledNames < nbOps) {
+    const missing = nbOps - filledNames;
+    opsErrEl.textContent = `Veuillez saisir ${nbOps} nom${nbOps > 1 ? 's' : ''} (il manque ${missing})`;
+    opsErrEl.hidden = false;
+    document.querySelectorAll('.op-input').forEach((el, i) => {
+      if (!el.value.trim()) el.classList.add('field-error');
+    });
+    if (!firstError) {
+      document.querySelector('.op-input.field-error')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      document.querySelector('.op-input.field-error')?.focus();
+    }
+    valid = false;
+  }
+
+  if (firstError) {
+    document.getElementById(firstError).scrollIntoView({ behavior: 'smooth', block: 'center' });
+    document.getElementById(firstError).focus();
+  }
+
+  return valid;
+}
+
 // ── Submit ────────────────────────────────────────────────────────────────────
 
 document.getElementById('mainForm').addEventListener('submit', async e => {
   e.preventDefault();
+  if (!validateForm()) return;
 
   const hActive = document.getElementById('h_active').checked;
   const rActive = document.getElementById('r_active').checked;

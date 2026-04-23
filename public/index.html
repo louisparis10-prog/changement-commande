@@ -41,16 +41,19 @@
           <input type="text" id="nouvelle_production" placeholder="Ex : Produit B" required>
         </div>
         <div class="form-group">
-          <label>Heure prévue</label>
+          <label>Heure prévue <span class="req">*</span></label>
           <input type="time" id="heure_prevue">
+          <span class="field-error-msg" id="heure_prevue_err" hidden></span>
         </div>
         <div class="form-group">
-          <label>Heure réelle</label>
+          <label>Heure réelle <span class="req">*</span></label>
           <input type="time" id="heure_reelle">
+          <span class="field-error-msg" id="heure_reelle_err" hidden></span>
         </div>
         <div class="form-group">
-          <label>Heure de début</label>
+          <label>Heure de début <span class="req">*</span></label>
           <input type="time" id="heure_debut">
+          <span class="field-error-msg" id="heure_debut_err" hidden></span>
         </div>
         <div class="form-group">
           <label>Nombre d'opérateurs <span class="req">*</span></label>
@@ -59,7 +62,7 @@
       </div>
 
       <div class="form-group full" style="margin-top:1rem;">
-        <label>Noms des opérateurs</label>
+        <label>Noms des opérateurs <span class="req">*</span></label>
         <div class="operator-list" id="operatorList">
           <div class="operator-row">
             <input type="text" placeholder="Opérateur 1" class="op-input">
@@ -67,6 +70,7 @@
           </div>
         </div>
         <button type="button" class="btn-add-op" onclick="addOp()">+ Ajouter un opérateur</button>
+        <span class="field-error-msg" id="operateurs_err" hidden></span>
       </div>
 
       <div class="form-group full" style="margin-top:1rem;">
@@ -90,16 +94,19 @@
         <div class="bl-sub" id="blHacheuse">BL-????</div>
         <div class="form-grid">
           <div class="form-group">
-            <label>Heure de début</label>
+            <label>Heure de début <span class="req">*</span></label>
             <input type="time" id="h_debut">
+            <span class="field-error-msg" id="h_debut_err" hidden></span>
           </div>
           <div class="form-group">
-            <label>Heure de fin</label>
+            <label>Heure de fin <span class="req">*</span></label>
             <input type="time" id="h_fin">
+            <span class="field-error-msg" id="h_fin_err" hidden></span>
           </div>
           <div class="form-group">
-            <label>Nombre d'opérateurs</label>
+            <label>Nombre d'opérateurs <span class="req">*</span></label>
             <input type="number" id="h_ops" min="1" max="50" placeholder="0">
+            <span class="field-error-msg" id="h_ops_err" hidden></span>
           </div>
         </div>
       </div>
@@ -120,16 +127,19 @@
         <div class="bl-sub" id="blRouleaux">BL-????</div>
         <div class="form-grid">
           <div class="form-group">
-            <label>Heure de début</label>
+            <label>Heure de début <span class="req">*</span></label>
             <input type="time" id="r_debut">
+            <span class="field-error-msg" id="r_debut_err" hidden></span>
           </div>
           <div class="form-group">
-            <label>Heure de fin</label>
+            <label>Heure de fin <span class="req">*</span></label>
             <input type="time" id="r_fin">
+            <span class="field-error-msg" id="r_fin_err" hidden></span>
           </div>
           <div class="form-group">
-            <label>Nombre d'opérateurs</label>
+            <label>Nombre d'opérateurs <span class="req">*</span></label>
             <input type="number" id="r_ops" min="1" max="50" placeholder="0">
+            <span class="field-error-msg" id="r_ops_err" hidden></span>
           </div>
         </div>
       </div>
@@ -151,19 +161,23 @@
         <div class="form-group full" style="margin-bottom:1rem;">
           <label>Type de nettoyage <span class="req">*</span></label>
           <input type="text" id="c_type" placeholder="Ex : Nettoyage convoyeur, bac de collecte…">
+          <span class="field-error-msg" id="c_type_err" hidden></span>
         </div>
         <div class="form-grid">
           <div class="form-group">
-            <label>Heure de début</label>
+            <label>Heure de début <span class="req">*</span></label>
             <input type="time" id="c_debut">
+            <span class="field-error-msg" id="c_debut_err" hidden></span>
           </div>
           <div class="form-group">
-            <label>Heure de fin</label>
+            <label>Heure de fin <span class="req">*</span></label>
             <input type="time" id="c_fin">
+            <span class="field-error-msg" id="c_fin_err" hidden></span>
           </div>
           <div class="form-group">
-            <label>Nombre d'opérateurs</label>
+            <label>Nombre d'opérateurs <span class="req">*</span></label>
             <input type="number" id="c_ops" min="1" max="50" placeholder="0">
+            <span class="field-error-msg" id="c_ops_err" hidden></span>
           </div>
         </div>
       </div>
